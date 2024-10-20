@@ -1,3 +1,7 @@
+extern crate rand;
+
+use rand::Rng;
+
 #[derive(Debug, Clone)]
 pub struct Vet {
     pub employee_id: i64,
@@ -48,6 +52,44 @@ pub enum Species {
     Cat,
     Rat,
     GuineaPig,
+    Fish,
+    Lizard,
+    Mouse,
+    Rabbit,
+    Snake,
+    Chicken,
+    Duck,
+    SeaMonkey,
+    Frog
+}
+
+impl Species {
+    fn get_range() -> usize {
+        Species::Frog as usize
+    }
+
+
+    pub fn generate_random_species() -> Self {
+        //Get total number of enums
+        let total_species: usize = Self::get_range();
+        //Randomly select number
+        match rand::thread_rng().gen_range(0..=total_species) {
+            0 => Species::Dog,
+            1 => Species::Cat,
+            2 => Species::Rat,
+            3 => Species::GuineaPig,
+            4 => Species::Fish,
+            5 => Species::Lizard,
+            6 => Species::Mouse,
+            7 => Species::Rabbit,
+            8 => Species::Snake,
+            9 => Species::Chicken,
+            10 => Species::Duck,
+            11 => Species::SeaMonkey,
+            12 => Species::Frog,
+            _ => panic!("Unexpected species index")
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -61,4 +103,5 @@ impl Animal {
     pub fn new(name: String, owner_name: String, species: Species) -> Animal {
         Animal {name, species, owner_name}
     }
+
 }
