@@ -7,12 +7,13 @@ pub struct Vet {
     pub employee_id: i64,
     pub first_name: String,
     pub second_name: String,
-    pub date_of_birth: String
+    pub date_of_birth: String,
+    pub available: bool
 }
 
 impl Vet {
-    pub fn new(employee_id: i64, first_name: String, second_name: String, date_of_birth: String) -> Vet {
-        Vet {employee_id, first_name, second_name, date_of_birth}
+    pub fn new(employee_id: i64, first_name: String, second_name: String, date_of_birth: String, available: bool) -> Vet {
+        Vet {employee_id, first_name, second_name, date_of_birth, available}
     }
 }
 
@@ -36,12 +37,12 @@ impl <'a>VetSurgery<'a> {
 pub struct Room<'a> {
     pub id: i8,
     pub available: bool,
-    pub vet: &'a Vet,
-    pub animal: &'a Animal
+    pub vet: Option<&'a Vet>,
+    pub animal: Option<&'a Animal>
 }
 
 impl <'a>Room<'a> {
-    pub fn new(id: i8, available: bool, vet: &'a Vet, animal: &'a Animal) -> Room<'a> {
+    pub fn new(id: i8, available: bool, vet: Option<&'a Vet>, animal: Option<&'a Animal>) -> Room<'a> {
         Room { id, available, vet, animal }
     }
 }

@@ -6,27 +6,26 @@ use vet_surgery::{ Animal, Room, Species, Vet, VetSurgery };
 fn main() {
 
 
-    const num_of_pets: u8 = 10;
+    const NUM_OF_PETS: u8 = 10;
 
     let mut animals: Vec<Animal> = Vec::new();
 
-
-
-    for i in 0..=num_of_pets {
-
-        
+    //Generate Animals
+    for i in 0..=NUM_OF_PETS {
         let animal: Animal = Animal::new(petname(1, "").unwrap(), petname(2, " ").unwrap(), Species::generate_random_species());
 
-        println!("{} {} {:?}", animal.name, animal.owner_name, animal.species)
+        println!("{} {} {:?}", animal.name, animal.owner_name, animal.species);
+        animals.push(animal);
     }
 
 
-    let vet_carol: Vet = Vet::new(1, "Carol".to_string(), "Hoots".to_string(), "29/02/1980".to_string());
-    let vet_jim: Vet = Vet::new(2, "Jim".to_string(), "Doggington".to_string(), "09/09/1985".to_string());
+    let vet_carol: Vet = Vet::new(1, "Carol".to_string(), "Hoots".to_string(), "29/02/1980".to_string(), true);
+    let vet_jim: Vet = Vet::new(2, "Jim".to_string(), "Doggington".to_string(), "09/09/1985".to_string(), true);
     let vets: Vec<&Vet> = [&vet_carol, &vet_jim].to_vec();
 
     
-    // let room_one: Room = Room::new(1, true, &vet_carol, &);
+    let room_one: Room = Room::new(1, true, Some(&vet_carol), None);
+    let room_two: Room = Room::new(2, true, None, None); 
 
     // let rooms: Vec<&Room> = [&room_one].to_vec();
 
