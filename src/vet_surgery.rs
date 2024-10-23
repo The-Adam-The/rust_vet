@@ -1,19 +1,22 @@
 extern crate rand;
 
+// use serde::{Deserialize, Serialize};
+use serde_derive::{Deserialize, Serialize};
+
 use rand::Rng;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Vet {
-    pub employee_id: i64,
-    pub first_name: String,
-    pub second_name: String,
-    pub date_of_birth: String,
+    pub id: i64,
+    pub forename: String,
+    pub surname: String,
+    pub age: u8,
     pub available: bool
 }
 
 impl Vet {
-    pub fn new(employee_id: i64, first_name: String, second_name: String, date_of_birth: String, available: bool) -> Vet {
-        Vet {employee_id, first_name, second_name, date_of_birth, available}
+    pub fn new(id: i64, forename: String, surname: String, age: u8, available: bool) -> Vet {
+        Vet {id, forename, surname, age, available}
     }
 }
 
