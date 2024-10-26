@@ -5,13 +5,15 @@ use axum::{
     http::StatusCode,
     Json, Router,
 };
-use serde::{Deserialize, Serialize};
 use petname::petname;
-use vet_surgery::{ Animal, Room, Species, Vet, VetSurgery };
-use sqlite::State;
-
 
 mod vet_surgery;
+use vet_surgery::Vet;
+
+
+// use vet_surgery::{ Animal, Room, Species, Vet, VetSurgery };
+use sqlite::State;
+
 
 
 
@@ -22,6 +24,7 @@ async fn main() {
 let connection = sqlite::open("vets.db").unwrap();
 
 let query = "
+    DROP TABLE IF EXISTS vets;
     CREATE TABLE vets (id INTEGER PRIMARY KEY AUTOINCREMENT, forename TEXT, surname TEXT, age INTEGER, available INTEGER);
     INSERT INTO vets VALUES (NULL, 'Carol', 'Hoots', 42, 1);
     INSERT INTO vets VALUES (NULL, 'Jim', 'Doggington', 39,  0);
@@ -33,12 +36,6 @@ connection.execute(query).unwrap();
 let query = "SELECT * FROM vets";
 let mut statement = connection.prepare(query).unwrap();
 // statement.bind().unwrap();
-
-while let Ok(State::Row) = statement.next() {
-    println!("name = {}", statement.read::<String, _>("forename").unwrap());
-    println!("age = {}", statement.read::<i64, _>("age").unwrap());
-}
-
 
     // const NUM_OF_PETS: u8 = 10;
 
@@ -72,21 +69,15 @@ while let Ok(State::Row) = statement.next() {
     let app = Router::new()
     // `GET /` goes to `root`
     .route("/", get(root))
-    .route("/vets", get(move || get_vets()));
+    .route("/vets", get(move || get_vets()))
+    .route("/vets/:id", get(get_vet_id));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
-    
-    
-    // build our application with a route
-    
-    // let pet_name  = petname(2, " ");
-    // println!("Address: {:?}", vet_surgery_0.address);
-    // println!("Phone number: {:?}", vet_surgery_0.phone_number);
-    // println!("email: {:?}", vet_surgery_0.email);
 }
-
+    
+    
 
 // basic handler that responds with a static string
 async fn root() -> &'static str {
@@ -116,8 +107,38 @@ async fn get_vets() -> Json<Vec<Vet>> {
         vets.push(vet);
 }
     
-    Json(vets.to_vec())
+    Json(vets.to_vec())  
 
+}
+
+use axum::extract::Path;
+
+async fn get_vet_id(Path(id): Path<i64>) -> Json<Vet> {
+    let connection = sqlite::open("vets.db").unwrap();
+    let query = "SELECT * FROM vets WHERE id = ?";
+    let mut statement = connection.prepare(query).unwrap();
+    statement.bind((1, id)).unwrap();
+
+    
+    if let Ok(State::Row) = statement.next() {
+        let id: i64 = statement.read::<i64, _>("id").unwrap();
+        let forename = statement.read::<String, _>("forename").unwrap();
+        let surname: String = statement.read::<String, _>("surname").unwrap();
+        let age: u8 = statement.read::<i64, _>("age").unwrap().try_into().unwrap();
+        let available: bool = statement.read::<i64, _>("available").unwrap() != 0;
+            
+        let vet = Vet::new(
+            id,
+            forename,
+            surname,
+            age,
+            available
+        );
+
+        Json(vet)
+    } else {
+        Json(Vet::default()) // Assuming Vet has a default implementation
+    }
 }
 
 

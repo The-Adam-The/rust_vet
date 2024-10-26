@@ -1,24 +1,8 @@
+
 extern crate rand;
 
-// use serde::{Deserialize, Serialize};
-use serde_derive::{Deserialize, Serialize};
-
 use rand::Rng;
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Vet {
-    pub id: i64,
-    pub forename: String,
-    pub surname: String,
-    pub age: u8,
-    pub available: bool
-}
-
-impl Vet {
-    pub fn new(id: i64, forename: String, surname: String, age: u8, available: bool) -> Vet {
-        Vet {id, forename, surname, age, available}
-    }
-}
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct VetSurgery<'a> {
@@ -37,6 +21,21 @@ impl <'a>VetSurgery<'a> {
 }
 
 #[derive(Debug)]
+pub struct Animal {
+    pub name: String,
+    pub owner_name: String,
+    pub species: Species,
+}
+
+impl Animal {
+    pub fn new(name: String, owner_name: String, species: Species) -> Animal {
+        Animal {name, species, owner_name}
+    }
+
+}
+
+
+#[derive(Debug)]
 pub struct Room<'a> {
     pub id: i8,
     pub available: bool,
@@ -49,6 +48,7 @@ impl <'a>Room<'a> {
         Room { id, available, vet, animal }
     }
 }
+
 
 #[derive(Debug)]
 pub enum Species {
@@ -71,8 +71,8 @@ impl Species {
     fn get_range() -> usize {
         Species::Frog as usize
     }
-
-
+    
+    
     pub fn generate_random_species() -> Self {
         //Get total number of enums
         let total_species: usize = Self::get_range();
@@ -96,16 +96,21 @@ impl Species {
     }
 }
 
-#[derive(Debug)]
-pub struct Animal {
-    pub name: String,
-    pub owner_name: String,
-    pub species: Species,
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Vet {
+    pub id: i64,
+    pub forename: String,
+    pub surname: String,
+    pub age: u8,
+    pub available: bool
 }
 
-impl Animal {
-    pub fn new(name: String, owner_name: String, species: Species) -> Animal {
-        Animal {name, species, owner_name}
+impl Vet {
+    pub fn new(id: i64, forename: String, surname: String, age: u8, available: bool) -> Vet {
+        Vet {id, forename, surname, age, available}
     }
 
+    pub fn default() -> Vet {
+        Vet { id: 0, forename: "".to_string(), surname: "".to_string(), age: 0, available: false}
+    }
 }
