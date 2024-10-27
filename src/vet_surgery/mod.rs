@@ -114,3 +114,11 @@ impl Vet {
         Vet { id: 0, forename: "".to_string(), surname: "".to_string(), age: 0, available: false}
     }
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct CreateVet {
+    pub forename: String,
+    pub surname: String,
+    pub age: u8,
+    pub available: bool
+}

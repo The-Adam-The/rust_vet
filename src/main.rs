@@ -8,12 +8,9 @@ use axum::{
 use petname::petname;
 
 mod vet_surgery;
-use vet_surgery::Vet;
+use vet_surgery::{CreateVet, Vet};
 
-
-// use vet_surgery::{ Animal, Room, Species, Vet, VetSurgery };
-use sqlite::State;
-
+use sqlite::{State, Connection, Value};
 
 
 
@@ -33,8 +30,8 @@ connection.execute(query).unwrap();
 
 
 
-let query = "SELECT * FROM vets";
-let mut statement = connection.prepare(query).unwrap();
+// let query = "SELECT * FROM vets";
+// let mut statement = connection.prepare(query).unwrap();
 // statement.bind().unwrap();
 
     // const NUM_OF_PETS: u8 = 10;
@@ -70,7 +67,8 @@ let mut statement = connection.prepare(query).unwrap();
     // `GET /` goes to `root`
     .route("/", get(root))
     .route("/vets", get(move || get_vets()))
-    .route("/vets/:id", get(get_vet_id));
+    .route("/vets/:id", get(get_vet_id))
+    .route("/vets", post(create_vet));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
@@ -83,6 +81,8 @@ let mut statement = connection.prepare(query).unwrap();
 async fn root() -> &'static str {
     "Hello, World!"
 }
+
+
 async fn get_vets() -> Json<Vec<Vet>> {
     let connection = sqlite::open("vets.db").unwrap();
     let query = "SELECT * FROM vets";
@@ -139,6 +139,27 @@ async fn get_vet_id(Path(id): Path<i64>) -> Json<Vet> {
     } else {
         Json(Vet::default()) // Assuming Vet has a default implementation
     }
+}
+
+async fn create_vet(Json(payload): Json<CreateVet>, ) -> Json<Vet>
+{
+    let connection: Connection = sqlite::open("vets.db").unwrap();
+    let query = "INSERT INTO vets VALUES (NULL, ?, ?, ?, ?)";
+    let mut statement = connection.prepare(query).unwrap();
+    statement.bind((1, payload.forename.as_str())).unwrap();
+    statement.bind((2, payload.surname.as_str())).unwrap();
+    statement.bind((3, payload.age as i64)).unwrap();
+    statement.bind((4, payload.available as i64)).unwrap();
+
+    statement.next().unwrap();
+
+    let mut statement = connection.prepare("SELECT last_insert_rowid()").unwrap();
+    statement.next().unwrap();
+    let id = statement.read::<i64, _>(0).unwrap();
+
+    let vet = Vet::new(id, payload.forename, payload.surname, payload.age, payload.available);
+    Json(vet)
+
 }
 
 
