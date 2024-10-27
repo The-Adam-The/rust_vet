@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-    routing::{get, post},
+    routing::{get, post, delete},
     http::StatusCode,
     Json, Router,
 };
@@ -68,7 +68,8 @@ connection.execute(query).unwrap();
     .route("/", get(root))
     .route("/vets", get(move || get_vets()))
     .route("/vets/:id", get(get_vet_id))
-    .route("/vets", post(create_vet));
+    .route("/vets", post(create_vet))
+    .route("/vets/:id", delete(delete_vet_by_id));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
@@ -159,7 +160,19 @@ async fn create_vet(Json(payload): Json<CreateVet>, ) -> Json<Vet>
 
     let vet = Vet::new(id, payload.forename, payload.surname, payload.age, payload.available);
     Json(vet)
+}
 
+async fn delete_vet_by_id(Path(id): Path<i64>) -> Json<String> {
+    let connection = sqlite::open("vets.db").unwrap();
+    let query = "DELETE FROM vets WHERE id = ?";
+    let mut statement = connection.prepare(query).unwrap();
+    statement.bind((1, id)).unwrap();
+
+    statement.next().unwrap();
+    
+   
+    Json(format!("Successfuly deleted vet: {}", id).to_string())
+   
 }
 
 
