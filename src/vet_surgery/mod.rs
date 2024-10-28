@@ -34,18 +34,17 @@ impl Animal {
 
 }
 
-
 #[derive(Debug)]
 pub struct Room<'a> {
-    pub id: i8,
-    pub available: bool,
+    pub id: i64,
     pub vet: Option<&'a Vet>,
-    pub animal: Option<&'a Animal>
+    pub animal: Option<&'a Animal>,
+    pub available: bool,
 }
 
 impl <'a>Room<'a> {
-    pub fn new(id: i8, available: bool, vet: Option<&'a Vet>, animal: Option<&'a Animal>) -> Room<'a> {
-        Room { id, available, vet, animal }
+    pub fn new(id: i64, vet: Option<&'a Vet>, animal: Option<&'a Animal>, available: bool,) -> Room<'a> {
+        Room { id, vet, animal, available }
     }
 }
 
@@ -71,7 +70,6 @@ impl Species {
     fn get_range() -> usize {
         Species::Frog as usize
     }
-    
     
     pub fn generate_random_species() -> Self {
         //Get total number of enums

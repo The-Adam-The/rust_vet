@@ -5,10 +5,14 @@ use axum::{
     http::StatusCode,
     Json, Router,
 };
+use axum::extract::Path;
+use data::{get_all_vets, get_vet_by_id, set_up_db};
 use petname::petname;
 
 mod vet_surgery;
-use vet_surgery::{CreateVet, Vet};
+pub mod data;
+
+use vet_surgery::{CreateVet, Vet, Room};
 
 use sqlite::{State, Connection, Value};
 
@@ -17,16 +21,10 @@ use sqlite::{State, Connection, Value};
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
 
+    set_up_db();
 
-let connection = sqlite::open("vets.db").unwrap();
 
-let query = "
-    DROP TABLE IF EXISTS vets;
-    CREATE TABLE vets (id INTEGER PRIMARY KEY AUTOINCREMENT, forename TEXT, surname TEXT, age INTEGER, available INTEGER);
-    INSERT INTO vets VALUES (NULL, 'Carol', 'Hoots', 42, 1);
-    INSERT INTO vets VALUES (NULL, 'Jim', 'Doggington', 39,  0);
-";
-connection.execute(query).unwrap();
+
 
 
 
@@ -70,6 +68,7 @@ connection.execute(query).unwrap();
     .route("/vets/:id", get(get_vet_id))
     .route("/vets", post(create_vet))
     .route("/vets/:id", delete(delete_vet_by_id));
+    // .route("/rooms", get( move || get_rooms()));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
@@ -85,61 +84,11 @@ async fn root() -> &'static str {
 
 
 async fn get_vets() -> Json<Vec<Vet>> {
-    let connection = sqlite::open("vets.db").unwrap();
-    let query = "SELECT * FROM vets";
-    let mut statement = connection.prepare(query).unwrap();
-
-    let mut vets: Vec<Vet> = vec!();
-
-    while let Ok(State::Row) = statement.next() {
-        let id: i64 = statement.read::<i64, _>("id").unwrap();
-        let forename = statement.read::<String, _>("forename").unwrap();
-        let surname: String = statement.read::<String, _>("surname").unwrap();
-        let age: u8 = statement.read::<i64, _>("age").unwrap().try_into().unwrap();
-        let available: bool = statement.read::<i64, _>("available").unwrap() != 0;
-        
-        let vet = Vet::new(
-            id,
-            forename,
-            surname,
-            age,
-            available
-        );
-        vets.push(vet);
+    Json(get_all_vets())  
 }
-    
-    Json(vets.to_vec())  
-
-}
-
-use axum::extract::Path;
 
 async fn get_vet_id(Path(id): Path<i64>) -> Json<Vet> {
-    let connection = sqlite::open("vets.db").unwrap();
-    let query = "SELECT * FROM vets WHERE id = ?";
-    let mut statement = connection.prepare(query).unwrap();
-    statement.bind((1, id)).unwrap();
-
-    
-    if let Ok(State::Row) = statement.next() {
-        let id: i64 = statement.read::<i64, _>("id").unwrap();
-        let forename = statement.read::<String, _>("forename").unwrap();
-        let surname: String = statement.read::<String, _>("surname").unwrap();
-        let age: u8 = statement.read::<i64, _>("age").unwrap().try_into().unwrap();
-        let available: bool = statement.read::<i64, _>("available").unwrap() != 0;
-            
-        let vet = Vet::new(
-            id,
-            forename,
-            surname,
-            age,
-            available
-        );
-
-        Json(vet)
-    } else {
-        Json(Vet::default()) // Assuming Vet has a default implementation
-    }
+    Json(get_vet_by_id(id))
 }
 
 async fn create_vet(Json(payload): Json<CreateVet>, ) -> Json<Vet>
@@ -170,10 +119,41 @@ async fn delete_vet_by_id(Path(id): Path<i64>) -> Json<String> {
 
     statement.next().unwrap();
     
-   
     Json(format!("Successfuly deleted vet: {}", id).to_string())
-   
 }
+
+// async fn get_rooms() ->Json<Vec<Room>> {
+//     let connection = sqlite::open("vets.db").unwrap();
+//     let query = "SELECT * FROM rooms";
+//     let mut statement = connection.prepare(query).unwrap();
+
+//     let mut rooms: Vec<Room> = vec!();
+
+//     while let Ok(State::Row) = statement.next() {
+//         let id: i64 = statement.read::<i64, _>("id").unwrap();
+//         let vet_id = statement.read::<String, _>("vet").unwrap();
+//         let animal_id: String = statement.read::<String, _>("animal").unwrap();
+//         let available: bool = statement.read::<i64, _>("available").unwrap() != 0;
+
+//         if vet_id != None {
+
+//         }
+        
+//         let room = Room::new(
+//             id,
+//             vet,
+//             animal,
+//             available
+//         );
+//         rooms.push(room);
+// }
+    
+//     Json(rooms.to_vec())  
+// }
+
+
+
+
 
 
 
